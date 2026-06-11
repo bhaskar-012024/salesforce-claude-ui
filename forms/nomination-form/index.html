@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nominate a Reference — ReferenceEdge</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --border: #E2E8F0;
+    --border-focus: #94A3B8;
+    --text: #0F172A;
+    --muted: #64748B;
+    --hint: #94A3B8;
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --primary-light: #EFF6FF;
+    --primary-border: #BFDBFE;
+    --danger: #DC2626;
+    --danger-light: #FEF2F2;
+    --danger-border: #FECACA;
+    --success: #16A34A;
+    --success-light: #F0FDF4;
+    --success-border: #BBF7D0;
+    --warning-light: #FFFBEB;
+    --warning-border: #FDE68A;
+    --warning: #92400E;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-full: 9999px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0F172A;
+      --surface: #1E293B;
+      --border: #334155;
+      --border-focus: #64748B;
+      --text: #F1F5F9;
+      --muted: #94A3B8;
+      --hint: #475569;
+      --primary: #3B82F6;
+      --primary-hover: #60A5FA;
+      --primary-light: #1E3A5F;
+      --primary-border: #1E40AF;
+      --danger: #F87171;
+      --danger-light: #450A0A;
+      --danger-border: #7F1D1D;
+      --success: #4ADE80;
+      --success-light: #052E16;
+      --success-border: #14532D;
+      --warning-light: #1C1400;
+      --warning-border: #713F12;
+      --warning: #FCD34D;
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .container { max-width: 680px; margin: 0 auto; }
+
+  /* Header */
+  .header { margin-bottom: 24px; }
+  .header-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .header-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+  .header-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--primary); }
+  .header h1 { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .header p { font-size: 13px; color: var(--muted); }
+
+  /* Timing badge */
+  .meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: var(--radius-full); border: 1px solid; }
+  .badge-cache { background: var(--success-light); color: var(--success); border-color: var(--success-border); }
+  .badge-live { background: var(--warning-light); color: var(--warning); border-color: var(--warning-border); }
+  .timing { font-size: 11px; color: var(--hint); }
+  .timing strong { color: var(--muted); }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; margin-bottom: 10px; }
+  .card-label { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 4px; }
+  .req { color: var(--danger); }
+
+  /* Inputs */
+  input[type="text"], textarea, select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    transition: border-color .15s;
+    outline: none;
+    appearance: none;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  input.has-error { border-color: var(--danger); }
+  textarea { resize: vertical; line-height: 1.5; }
+  select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+
+  .field-err { font-size: 12px; color: var(--danger); margin-top: 5px; display: none; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: var(--radius-full);
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--muted); font-size: 12.5px; font-family: inherit;
+    cursor: pointer; transition: all .12s; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--primary-border); background: var(--primary-light); color: var(--primary); }
+  .chip.on { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 500; }
+  .chip.on::before { content: '✓ '; font-size: 11px; }
+
+  /* Buttons */
+  .btn-primary {
+    padding: 10px 24px; background: var(--primary); color: #fff;
+    border: none; border-radius: var(--radius-md); font-size: 13px;
+    font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: background .15s; display: inline-flex; align-items: center; gap: 7px;
+  }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:disabled { background: var(--hint); cursor: not-allowed; }
+  .btn-ghost { background: none; border: none; font-size: 12px; color: var(--hint); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; padding: 0; }
+  .btn-ghost:hover { color: var(--muted); }
+
+  /* Footer row */
+  .form-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 6px; }
+
+  /* Banners */
+  .banner { border-radius: var(--radius-md); padding: 11px 14px; font-size: 13px; margin-bottom: 12px; display: none; }
+  .banner-err { background: var(--danger-light); border: 1px solid var(--danger-border); color: var(--danger); }
+
+  /* Success screen */
+  .success-screen { text-align: center; padding: 48px 24px; }
+  .success-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--success-light); border: 1px solid var(--success-border); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .success-icon svg { stroke: var(--success); }
+  .success-screen h2 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .success-screen p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin .8s linear infinite; display: inline-block; }
+
+  /* Info box */
+  .info-box { background: var(--primary-light); border: 1px solid var(--primary-border); border-radius: var(--radius-md); padding: 10px 13px; font-size: 12.5px; color: var(--primary); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="form-view">
+    <div class="header">
+      <div class="header-top">
+        <div class="header-dot"></div>
+        <span class="header-eyebrow">ReferenceEdge</span>
+      </div>
+      <h1>Nominate a reference</h1>
+      <p>Identify customers who can serve as references for your prospects.</p>
+    </div>
+
+    <div class="meta-row">
+      <span id="cache-badge" class="badge badge-live">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        First load
+      </span>
+      <span class="timing">Ready in <strong id="timing-ms">—</strong></span>
+    </div>
+
+    <!-- Contact / Account -->
+    <div class="card">
+      <p class="card-label">Contact &amp; account</p>
+      <div class="info-box">In production, contact and account are pre-populated from the current Salesforce record context.</div>
+    </div>
+
+    <!-- Outcome Name -->
+    <div class="card">
+      <p class="card-label">Outcome name <span class="req">*</span></p>
+      <input type="text" id="outcome" placeholder="Describe the desired outcome…" oninput="S.outcome=this.value;hideErr('outcome-err',this)">
+      <p class="field-err" id="outcome-err">Outcome name is required.</p>
+    </div>
+
+    <!-- Activities -->
+    <div class="card">
+      <p class="card-label">Reference activities</p>
+      <div class="chips" id="activity-chips"></div>
+    </div>
+
+    <!-- Dynamic filters injected here -->
+    <div id="filter-cards"></div>
+
+    <!-- Custom field: customer prepped -->
+    <div class="card">
+      <p class="card-label">Has the customer been prepped?</p>
+      <select onchange="S.prepped=this.value">
+        <option value="">Select…</option>
+        <option>Yes, I have spoken to the customer about the Reference Program</option>
+        <option>No, I have not spoken to the customer about the Reference Program</option>
+      </select>
+    </div>
+
+    <!-- Comments -->
+    <div class="card">
+      <p class="card-label">Additional comments</p>
+      <textarea rows="3" placeholder="Any context for the reference team…" oninput="S.comments=this.value"></textarea>
+    </div>
+
+    <div class="banner banner-err" id="err-banner"></div>
+
+    <div class="form-footer">
+      <button class="btn-ghost" onclick="clearCache()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        Clear cache
+      </button>
+      <button class="btn-primary" id="sub-btn" onclick="handleSubmit()">Submit nomination</button>
+    </div>
+  </div>
+
+  <div id="success-view" style="display:none">
+    <div class="success-screen">
+      <div class="success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2>Nomination submitted</h2>
+      <p id="success-msg">Your nomination has been recorded and the team has been notified.</p>
+      <button class="btn-primary" onclick="resetForm()">Nominate another</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const T0 = performance.now();
+const CACHE_KEY = 'refedge-nom-v2';
+const CACHE_TTL = 7 * 86400000;
+
+const CONFIG = {"filters":[{"id":"a021Y00000olBZbQAM","name":"Database","required":false,"attrs":[{"name":"Admin","id":"a0Ei0000014vEdxEAE"},{"name":"Black","id":"a0Ei0000014uohVEAQ"},{"name":"Blue","id":"a0Ei0000014uohaEAA"}]},{"id":"a021Y00000olBKuQAM","name":"Fruits","required":false,"attrs":[{"name":"Adam's Apple","id":"a0E1Y000019NamJUAS"},{"name":"Apple, test.","id":"a0Ei0000014vEdEEAU"},{"name":"Banana","id":"a0Ei0000014vEdOEAU"},{"name":"Fresh","id":"a0Ei0000014vEdnEAE"},{"name":"Green Banana","id":"a0Ei0000014vEdYEAU"},{"name":"Orange","id":"a0Ei0000014vEdJEAU"},{"name":"Yellow Banana","id":"a0Ei0000014vEdTEAU"}]},{"id":"a025d000011Y94jAAC","name":"Opportunity Type","required":false,"attrs":[{"name":"Existing Business","id":"a0E5d00001PGm6CEAT"},{"name":"Existing Customer - Downgrade","id":"a0E5d00001PGm6GEAT"},{"name":"Existing Customer - Replacement","id":"a0E5d00001PGm6FEAT"},{"name":"Existing Customer - Upgrade","id":"a0E5d00001PGm6EEAT"},{"name":"New Business","id":"a0E5d00001PGm6DEAT"},{"name":"New Customer1","id":"a0E5d00001PGm6HEAT"},{"name":"new type","id":"a0E5d00001PGm6IEAT"}]},{"id":"a025d000011YAdCAAW","name":"Stage","required":false,"attrs":[{"name":"Closed Lost","id":"a0E5d00001PGpzqEAD"},{"name":"Closed Won","id":"a0E5d00001PGpzpEAD"},{"name":"Needs Analysis","id":"a0E5d00001PGpzeEAD"},{"name":"Negotiation/Review","id":"a0E5d00001PGpzjEAD"},{"name":"Perception Analysis","id":"a0E5d00001PGpzhEAD"},{"name":"Proposal/Price Quote","id":"a0E5d00001PGpziEAD"},{"name":"Prospecting","id":"a0E5d00001PGpzcEAD"},{"name":"Qualification","id":"a0E5d00001PGpzdEAD"},{"name":"Value Proposition","id":"a0E5d00001PGpzfEAD"}]},{"id":"a02Kd00000iwbqwIAA","name":"Recipient Name","required":false,"attrs":[{"name":"A M Roshan","id":"a0EKd00000JyY0yMAF"},{"name":"Aaron Fulkerson","id":"a0EKd00000JyY0sMAF"},{"name":"Dhruv Joshi","id":"a0EKd00000JyY0nMAF"},{"name":"Dixita Jain","id":"a0EKd00000JyY0oMAF"},{"name":"Gaurav Saini (61Demo)","id":"a0EKd00000JyY0lMAF"},{"name":"M Ray","id":"a0EKd00000JyY0xMAF"},{"name":"Matt Shale","id":"a0EKd00000JyY14MAF"},{"name":"Pooja s","id":"a0EKd00000JyY0uMAF"},{"name":"Pragati Paliwal","id":"a0EKd00000JyY0tMAF"},{"name":"Rahul sharma","id":"a0EKd00000JyY0vMAF"},{"name":"Rahul Yadav","id":"a0EKd00000JyY12MAF"},{"name":"Rajesh Sharma","id":"a0EKd00000JyY0gMAF"},{"name":"Rajneesh Raj","id":"a0EKd00000JyY0mMAF"},{"name":"Rekha","id":"a0EKd00000JyY0hMAF"},{"name":"Rich","id":"a0EKd00000JyY18MAF"},{"name":"Walter White","id":"a0EKd00000JyY0zMAF"}]},{"id":"a02Kd00000iwbr1IAA","name":"Reference Interview Name","required":false,"attrs":[{"name":"RI-1203","id":"a0EKd00000JyY1FMAV"},{"name":"RI-1204","id":"a0EKd00000JyY1EMAV"},{"name":"RI-1231","id":"a0EKd00000JyY1GMAV"},{"name":"RI-1233","id":"a0EKd00000JyY1JMAV"},{"name":"RI-1234","id":"a0EKd00000JyY1NMAV"},{"name":"RI-1382","id":"a0EKd00000JydjVMAR"},{"name":"RI-1383","id":"a0EKd00000JydjWMAR"}]},{"id":"a02Kd00000iwj7aIAA","name":"Geo","required":false,"attrs":[{"name":"APAC","id":"a0EKd00000Jyay9MAB"},{"name":"EMEA","id":"a0EKd00000JyayAMAR"},{"name":"LATAM","id":"a0EKd00000Jyay8MAB"},{"name":"North America","id":"a0EKd00000JyayBMAR"}]},{"id":"a02Kd00000ixQXiIAM","name":"Account Source","required":false,"attrs":[{"name":"External Referral","id":"a0EKd00000JyeYrMAJ"},{"name":"Other","id":"a0EKd00000JyeYwMAJ"},{"name":"Partner Referral","id":"a0EKd00000JyeYyMAJ"},{"name":"Phone Inquiry","id":"a0EKd00000JyeYxMAJ"},{"name":"Public Relations","id":"a0EKd00000JyeYsMAJ"},{"name":"Purchased List","id":"a0EKd00000JyeYzMAJ"},{"name":"Seminar - Internal","id":"a0EKd00000JyeYtMAJ"},{"name":"Seminar - Partner","id":"a0EKd00000JyeYuMAJ"},{"name":"Trade Show","id":"a0EKd00000JyeYvMAJ"}]},{"id":"a02Kd00000ixSbFIAU","name":"Case Type","required":false,"attrs":[{"name":"Electrical","id":"a0EKd00000JyeewMAB"},{"name":"Electronic","id":"a0EKd00000JyeexMAB"},{"name":"Mechanical4","id":"a0EKd00000JyeevMAB"},{"name":"Other","id":"a0EKd00000JyeezMAB"},{"name":"Structural","id":"a0EKd00000JyeeyMAB"},{"name":"technical","id":"a0EKd00000Jyef0MAB"}]},{"id":"a02Kd00000ixSbPIAU","name":"Currency ISO Code","required":false,"attrs":[{"name":"Australian Dollar","id":"a0EKd00000JyfJ1MAJ"},{"name":"Euro","id":"a0EKd00000JyfJ2MAJ"},{"name":"U.S. Dollar","id":"a0EKd00000JyfJ3MAJ"}]},{"id":"a02Kd00000ixQDEIA2","name":"Nomination Source","required":false,"attrs":[{"name":"Influitive","id":"a0EKd00000Jydm9MAB"},{"name":"Nomination Form","id":"a0EKd00000JydmAMAR"},{"name":"UserEvidence","id":"a0EKd00000JydmBMAR"},{"name":"Web Form","id":"a0EKd00000JydmCMAR"}]},{"id":"a02Kd00000ixSz1IAE","name":"Status","required":false,"attrs":[{"name":"Completed","id":"a0EKd00000JyiDuMAJ"},{"name":"In Progress","id":"a0EKd00000JyiDtMAJ"},{"name":"Not Started","id":"a0EKd00000JyiDsMAJ"},{"name":"On Hold","id":"a0EKd00000JyiDvMAJ"}]},{"id":"a02Kd00000ixXGoIAM","name":"Price Book Name","required":false,"attrs":[{"name":"India","id":"a0EKd00000JyiXrMAJ"},{"name":"Standard Price Book","id":"a0EKd00000JyiXqMAJ"},{"name":"Standard1","id":"a0EKd00000JyiXpMAJ"},{"name":"USA","id":"a0EKd00000JyiXsMAJ"}]},{"id":"a02Kd00000iwbr6IAA","name":"Vendor","required":false,"attrs":[{"name":"Cisco","id":"a0EKd00000JydccMAB"},{"name":"HP","id":"a0EKd00000JydcdMAB"},{"name":"IBM","id":"a0EKd00000JydceMAB"},{"name":"IronPort","id":"a0EKd00000JydcfMAB"},{"name":"Riverbed","id":"a0EKd00000JydcgMAB"},{"name":"VMWare","id":"a0EKd00000JydchMAB"}]},{"id":"a02Kd00000ixq4lIAA","name":"Billing State","required":false,"attrs":[{"name":"Andhra Pradesh","id":"a0EKd00000Jyk4TMAR"},{"name":"Assam","id":"a0EKd00000Jyk4QMAR"},{"name":"Delhi","id":"a0EKd00000Jyk4UMAR"},{"name":"Rajasthan","id":"a0EKd00000Jyk4SMAR"},{"name":"South Carolina","id":"a0EKd00000Jyk4RMAR"}]}],"activities":[{"name":"Case Study","id":"a09i000000rjL6eAAE"},{"name":"Logo use 11","id":"a09i000000rjL6fAAE"},{"name":"Audio interview 1","id":"a09i000000rjL6dAAE"},{"name":"Corporate Workflow","id":"a09i0000011A6NMAA0"},{"name":"Success Story Extreme","id":"a09i0000011A7wCAAS"},{"name":"Event Type 2","id":"a095d00002Y5su5AAB"},{"name":"Client call","id":"a095d00002Y5yEJAAZ"},{"name":"Group call","id":"a095d00002Y5yEOAAZ"},{"name":"Logo Use","id":"a095d00002Y5yETAAZ"},{"name":"blog post","id":"a09Kd00000XLbiEIAT"}]};
+
+let S = { filters:{}, activities:[], outcome:'', comments:'', prepped:'' };
+let fromCache = false;
+
+async function init() {
+  try {
+    const hit = await window.storage ? window.storage.get(CACHE_KEY) : null;
+    if (hit && hit.value) {
+      const p = JSON.parse(hit.value);
+      if (Date.now() - (p.ts||0) < CACHE_TTL) { fromCache = true; }
+    }
+    if (!fromCache) {
+      try { await window.storage.set(CACHE_KEY, JSON.stringify({ts: Date.now()})); } catch(e){}
+    }
+  } catch(e) {}
+
+  buildForm();
+  const ms = Math.round(performance.now() - T0);
+  document.getElementById('timing-ms').textContent = ms + 'ms';
+  const badge = document.getElementById('cache-badge');
+  if (fromCache) {
+    badge.className = 'badge badge-cache';
+    badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg> From cache';
+  }
+}
+
+function buildForm() {
+  // Activities
+  const ac = document.getElementById('activity-chips');
+  CONFIG.activities.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.dataset.id = a.id;
+    b.textContent = a.name;
+    b.onclick = () => toggleAct(a.id, b);
+    ac.appendChild(b);
+  });
+
+  // Filters
+  const fc = document.getElementById('filter-cards');
+  CONFIG.filters.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<p class="card-label">${f.name}${f.required ? '<span class="req"> *</span>' : ''}</p><div class="chips" id="chips-${f.id}"></div>`;
+    fc.appendChild(card);
+    const wrap = card.querySelector('.chips');
+    f.attrs.forEach(a => {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.dataset.fid = f.id;
+      b.dataset.aid = a.id;
+      b.textContent = a.name;
+      b.onclick = () => toggleFilter(f.id, a.id, b);
+      wrap.appendChild(b);
+    });
+  });
+}
+
+function toggleAct(id, el) {
+  const i = S.activities.indexOf(id);
+  if (i >= 0) { S.activities.splice(i, 1); el.classList.remove('on'); }
+  else { S.activities.push(id); el.classList.add('on'); }
+}
+
+function toggleFilter(fid, aid, el) {
+  const prev = S.filters[fid];
+  document.querySelectorAll(`[data-fid="${fid}"]`).forEach(b => b.classList.remove('on'));
+  if (prev === aid) { delete S.filters[fid]; }
+  else { S.filters[fid] = aid; el.classList.add('on'); }
+}
+
+function hideErr(id, input) {
+  document.getElementById(id).style.display = 'none';
+  input.classList.remove('has-error');
+}
+
+async function clearCache() {
+  try { await window.storage.delete(CACHE_KEY); } catch(e) {}
+  fromCache = false;
+  const badge = document.getElementById('cache-badge');
+  badge.className = 'badge badge-live';
+  badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg> Cache cleared';
+}
+
+function handleSubmit() {
+  if (!S.outcome.trim()) {
+    const errEl = document.getElementById('outcome-err');
+    const input = document.getElementById('outcome');
+    errEl.style.display = 'block';
+    input.classList.add('has-error');
+    input.focus();
+    return;
+  }
+
+  const btn = document.getElementById('sub-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Submitting…';
+  document.getElementById('err-banner').style.display = 'none';
+
+  const filtersJson = Object.entries(S.filters).map(([lid, aid]) => ({ labelId: lid, attributeIds: [aid] }));
+  const activitiesJson = S.activities.map(id => ({ id }));
+
+  const payload = {
+    contactId: '0035d00000DEMO001',
+    accountId: '0015d00000DEMO001',
+    contactName: 'Demo Contact',
+    accountName: 'Demo Account',
+    filtersJson,
+    activitiesJson,
+    freeformComments: S.comments || '',
+    outcomeName: S.outcome,
+    customerPrepped: S.prepped || 'Not specified'
+  };
+
+  // Post to parent window if embedded in iframe, otherwise show success
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'NOMINATION_SUBMIT', payload }, '*');
+  }
+
+  // Simulate success for standalone use
+  setTimeout(() => {
+    document.getElementById('form-view').style.display = 'none';
+    document.getElementById('success-view').style.display = 'block';
+    document.getElementById('success-msg').textContent =
+      `Nomination for "${S.outcome}" submitted with ${S.activities.length} activit${S.activities.length === 1 ? 'y' : 'ies'} and ${Object.keys(S.filters).length} filter${Object.keys(S.filters).length === 1 ? '' : 's'}.`;
+  }, 800);
+}
+
+function resetForm() {
+  S = { filters:{}, activities:[], outcome:'', comments:'', prepped:'' };
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('success-view').style.display = 'none';
+  document.getElementById('outcome').value = '';
+  document.querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
+  document.querySelector('select').value = '';
+  document.querySelector('textarea').value = '';
+}
+
+init();
+</script>
+</body>
+</html>
