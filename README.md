@@ -2,4 +2,4 @@
 
 | Component | URL | Description |
 |---|---|---|
-| Nomination Form | https://yourorg.github.io/.../nomination-form/ | Nominate a customer reference |
+| Nomination Form | https://bhaskar-012024.github.io/salesforce-claude-ui/forms/nomination-form/ | Nominate a customer reference |
